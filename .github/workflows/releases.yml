@@ -28,7 +28,6 @@ jobs:
           GITHUB_TOKEN: ${{secrets.UPLOAD_GITHUB_TOKEN}}
       - name: Debug homebrew
         run: |
-          ls dist
           cat dist/*.rb || true
   msi:
     needs: goreleaser
