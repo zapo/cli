@@ -59,7 +59,7 @@ jobs:
           mkdir -p build
           msi="$(basename "${{ steps.download_exe.outputs.zip }}" ".zip").msi"
           printf "::set-output name=msi::%s\n" "$msi"
-          go-msi make --msi "$msi" --out build --version "${GITHUB_REF#refs/tags/}"
+          go-msi make --msi "$PWD/$msi" --out "$PWD/build" --version "${GITHUB_REF#refs/tags/}"
       - name: Obtain signing cert
         id: obtain_cert
         env:
