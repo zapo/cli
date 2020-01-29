@@ -6,31 +6,31 @@ on:
       - "v*"
 
 jobs:
-  goreleaser:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v1
-      - name: Set up Go 1.13
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.13
-      - name: Generate changelog
-        run: script/changelog | tee CHANGELOG.md
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v1
-        with:
-          version: latest
-          args: release --release-notes=CHANGELOG.md
-        env:
-          GH_OAUTH_CLIENT_ID: 178c6fc778ccc68e1d6a
-          GH_OAUTH_CLIENT_SECRET: ${{secrets.OAUTH_CLIENT_SECRET}}
-          GITHUB_TOKEN: ${{secrets.UPLOAD_GITHUB_TOKEN}}
-      - name: Debug homebrew
-        run: |
-          cat dist/*.rb || true
+  # goreleaser:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v1
+  #     - name: Set up Go 1.13
+  #       uses: actions/setup-go@v1
+  #       with:
+  #         go-version: 1.13
+  #     - name: Generate changelog
+  #       run: script/changelog | tee CHANGELOG.md
+  #     - name: Run GoReleaser
+  #       uses: goreleaser/goreleaser-action@v1
+  #       with:
+  #         version: latest
+  #         args: release --release-notes=CHANGELOG.md
+  #       env:
+  #         GH_OAUTH_CLIENT_ID: 178c6fc778ccc68e1d6a
+  #         GH_OAUTH_CLIENT_SECRET: ${{secrets.OAUTH_CLIENT_SECRET}}
+  #         GITHUB_TOKEN: ${{secrets.UPLOAD_GITHUB_TOKEN}}
+  #     - name: Debug homebrew
+  #       run: |
+  #         cat dist/*.rb || true
   msi:
-    needs: goreleaser
+    # needs: goreleaser
     runs-on: windows-latest
     steps:
       - name: Checkout
