@@ -29,4 +29,4 @@ jobs:
     steps:
       - name: What is ur uname
         shell: bash
-        run: uname -r
+        run: uname -s
