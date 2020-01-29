@@ -46,6 +46,7 @@ archives:
 brews:
   - name: gh
     ids: [nix]
+    goarm: 6
     github:
       owner: github
       name: homebrew-gh
