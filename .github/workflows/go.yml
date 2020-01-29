@@ -24,3 +24,9 @@ jobs:
         run: |
           go test ./...
           go build -v ./cmd/gh
+  wintest:
+    runs-on: windows-latest
+    steps:
+      - name: What is ur uname
+        shell: bash
+        run: uname -r
