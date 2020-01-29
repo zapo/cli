@@ -41,17 +41,23 @@ jobs:
         run: |
           curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s 2.14.1
           bin/hub release download "${GITHUB_REF#refs/tags/}" -i '*windows_amd64*.zip'
+          printf "::set-output name=zip::%s\n" *.zip
           unzip -o *.zip && rm -v *.zip
-          echo "::set-output name=exe::bin/gh.exe"
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
       - name: Install go-msi
         run: choco install -y "go-msi"
+      - name: Prepare PATH
+        shell: bash
+        run: echo "::add-path::$WIX\\bin"
       - name: Build MSI
         id: buildmsi
-        uses: ./.github/actions/build-msi
-        with:
-          exe: ${{ steps.download_exe.outputs.exe }}
+        shell: bash
+        run: |
+          mkdir -p build
+          msi="$(basename "${{ steps.download_exe.outputs.zip }}" ".zip").msi"
+          printf "::set-output name=msi::%s\n" "$msi"
+          go-msi make --msi "$msi" --out build --version "${GITHUB_REF#refs/tags/}"
       - name: Obtain signing cert
         id: obtain_cert
         env:
@@ -64,9 +70,9 @@ jobs:
           .\script\sign.ps1 -Certificate "${{ steps.obtain_cert.outputs.cert-file }}" `
             -Executable "${{ steps.buildmsi.outputs.msi }}"
       - name: Upload MSI
-        uses: ./.github/actions/upload-msi
-        with:
-          msi-file: ${{ steps.buildmsi.outputs.msi }}
+        shell: bash
+        run: |
+          bin/hub release edit "${GITHUB_REF#refs/tags/}" -m "" -a "${{ steps.buildmsi.outputs.msi }}"
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
   releases:
