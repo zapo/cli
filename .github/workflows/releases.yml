@@ -41,8 +41,7 @@ jobs:
         run: |
           curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s 2.14.1
           bin/hub release download "${GITHUB_REF#refs/tags/}" -i '*windows_amd64*.zip'
-          unzip *.zip
-          rm -v *.zip
+          unzip -o *.zip && rm -v *.zip
           echo "::set-output name=exe::bin/gh.exe"
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
