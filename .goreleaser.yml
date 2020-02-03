@@ -82,7 +82,7 @@ scoop:
   bucket:
     owner: cli
     name: scoop-cli-cli
-  commit-author:
+  commit_author:
     name: vilmibm
     email: vilmibm@github.com
   homepage: https://github.com/cli/cli
