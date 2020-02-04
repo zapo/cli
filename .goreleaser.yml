@@ -81,7 +81,7 @@ nfpms:
 scoop:
   bucket:
     owner: cli
-    name: github
+    name: scoop-gh
   commit_author:
     name: vilmibm
     email: vilmibm@github.com
