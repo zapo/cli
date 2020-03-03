@@ -1,9 +1,9 @@
 package utils
 
 import (
+	"fmt"
 	"io"
 	"os"
-	"fmt"
 
 	"github.com/mattn/go-colorable"
 	"github.com/mattn/go-isatty"
@@ -13,6 +13,26 @@ import (
 
 var _isStdoutTerminal = false
 var checkedTerminal = false
+
+type ColorStrategy int
+
+const (
+	NeverColor ColorStrategy = iota + 1
+	AlwaysColor
+	AutoColor
+)
+
+func parseColorStrategy(strategy string) (ColorStrategy, error) {
+	switch strategy {
+	case "never":
+		return NeverColor, nil
+	case "always":
+		return AlwaysColor, nil
+	case "auto":
+		return AutoColor, nil
+	}
+	return AutoColor, fmt.Errorf("Couldnt parse color strategy \"%s\"", strategy)
+}
 
 func isStdoutTerminal() bool {
 	if !checkedTerminal {
@@ -32,41 +52,61 @@ func NewColorable(f *os.File) io.Writer {
 	return colorable.NewColorable(f)
 }
 
-func makeColorFunc(color string, forceColor bool) func(string) string {
+func makeColorFunc(color string, colorStrategy ColorStrategy) func(string) string {
 	cf := ansi.ColorFunc(color)
 	return func(arg string) string {
-		if forceColor || isStdoutTerminal() {
+		switch colorStrategy {
+		case AlwaysColor:
 			return cf(arg)
+		case NeverColor:
+			return arg
+		case AutoColor:
+			if isStdoutTerminal() {
+				return cf(arg)
+			} else {
+				return arg
+			}
+		default: // Unreachable
+			return arg
 		}
-		return arg
 	}
 }
 
 type Palette struct {
 	Magenta func(string) string
-	Cyan func(string) string
-	Red func(string) string
-	Yellow func(string) string
-	Blue func(string) string
-	Green func(string) string
-	Gray func(string) string
-	Bold func(string) string
+	Cyan    func(string) string
+	Red     func(string) string
+	Yellow  func(string) string
+	Blue    func(string) string
+	Green   func(string) string
+	Gray    func(string) string
+	Bold    func(string) string
 }
 
 func NewPalette(cmd *cobra.Command) (*Palette, error) {
-	forceColor, err := cmd.Flags().GetBool("force-color")
+	noColorFlag, err := cmd.Flags().GetBool("no-color")
 	if err != nil {
-		return nil, fmt.Errorf("could not parse force-color: %w", err)
+		return nil, fmt.Errorf("could not parse no-color: %w", err)
+	}
+
+	colorStrategyFlag, _ := cmd.Flags().GetString("color")
+	colorStrategy, err := parseColorStrategy(colorStrategyFlag)
+	if err != nil {
+		return nil, err
+	}
+
+	if noColorFlag {
+		colorStrategy = NeverColor
 	}
 
 	return &Palette{
-		Magenta: makeColorFunc("magenta", forceColor),
-		Cyan: makeColorFunc("cyan", forceColor),
-		Red: makeColorFunc("red", forceColor),
-		Yellow: makeColorFunc("yellow", forceColor),
-		Blue: makeColorFunc("blue", forceColor),
-		Green: makeColorFunc("green", forceColor),
-		Gray: makeColorFunc("black+h", forceColor),
-		Bold: makeColorFunc("default+b", forceColor),
+		Magenta: makeColorFunc("magenta", colorStrategy),
+		Cyan:    makeColorFunc("cyan", colorStrategy),
+		Red:     makeColorFunc("red", colorStrategy),
+		Yellow:  makeColorFunc("yellow", colorStrategy),
+		Blue:    makeColorFunc("blue", colorStrategy),
+		Green:   makeColorFunc("green", colorStrategy),
+		Gray:    makeColorFunc("black+h", colorStrategy),
+		Bold:    makeColorFunc("default+b", colorStrategy),
 	}, nil
 }
